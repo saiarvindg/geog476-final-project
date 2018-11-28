@@ -7,7 +7,12 @@
 4) Display the distributions on the state maps
 5) Discuss
 
-## Analysis Methods
-> Essentially follow flow chart
+## Analysis Key Methods
+> Essentially follow flow chart - each box can be a method
 
 ![flowchart](./flowchart.png)
+
+## Packages
+- `rasterio` for clipping out each state from NLCD
+- `geopandas` for reading in TIF file into `DataFrame`
+- `pandas` for performing statistics (Pearson correlation coefficient and multiple linear regression)
