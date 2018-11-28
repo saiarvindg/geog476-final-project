@@ -13,7 +13,7 @@
 ![flowchart](./flowchart.png)
 
 ## Packages
-- `zoneanalysis` to extract population density and land cover area percentage
+- `zonalmetrics` to extract population density and land cover area percentage
 - `rasterio` for clipping out each state from NLCD
 - `geopandas` for reading in TIF file into `DataFrame`
 - `pandas` (or `scipy` or `numpy`) for performing statistics (Pearson correlation coefficient and multiple linear regression)
