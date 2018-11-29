@@ -6,7 +6,7 @@ class Analysis:
 	stateNameToCensusTractNum = {'RI':44}
 	nlcdComponents = []
 	
-	def __init__(self, censusTractFile : str, landCoverFile : str, imperviousFile : str, state : str) -> None:
+	def __init__(self, censusTractFile : str, landCoverFile : str, imperviousFile : str) -> None:
 		import reduce from functools
 		# check if all files exist
 		if reduce(lambda x,y: (x and path.isfile(y)), [censusTractFile, landCoverFile, imperviousFile], True):
@@ -48,7 +48,7 @@ class Analysis:
 
 		# select only the census tract rows we need
 		stateCensusTract = stateCensusTract[stateCensusTract.GEOID == self.censusTractNum]
-		
+
 		return stateCensusTract
 
 	#Valeria
