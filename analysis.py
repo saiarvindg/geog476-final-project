@@ -4,14 +4,24 @@ class Analysis:
 	stateNameToCensusTractNum = {'RI':44}
 	nlcdComponents = []
 	
-	def __init__(self, stateName : str) -> None:
-		self.stateName = stateName
+	def __init__(self, fileName : str) -> None:
+		self.fileName = fileName
+	
+	# NOTE: I think we should leave any graphing up to the user (i.e. just give them the data frame)
+	def performPearsonAnalysisForState(self, state : str) -> (gp.GeoDataFrame,str, int):
+		""" Performs the analysis and return the GeoDataFrame and R value """
 
-		# extract census tracts and assign as instance
-		self.censusTractsGDF = self.getCensusTracts()
-		calcImperviousSurfaceCoverPercentage()
-		calcLandCoverPercentages()
-		self.landCoverWithHighestR = determineLandCoverTypeWithHighestR
+		if state in stateNameToCensusTractNum:
+			# extract census tracts and assign as instance
+			self.censusTractsGDF = self.getCensusTracts()
+			calcImperviousSurfaceCoverPercentage()
+			calcLandCoverPercentages()
+			self.landCoverWithHighestR = getLandCoverTypeWithHighestR()
+		else:
+			raise TypeError('Please pass in a valid state abbrevation')
+
+		
+		return (self.censusTractsGDF, self.landCoverWithHighestR[0], self.landCoverWithHighestR[1])
 	
 	def getCensusTracts(self) -> gp.GeoDataFrame:
 		""" Get the census tracts for each state """
@@ -74,13 +84,17 @@ class Analysis:
 			else:
 				self.landCoverPearsonCorrelations[landCover] = #TODO: fill in the r value
 
-	def determineLandCoverTypeWithHighestR(self) -> Str:
+	def getLandCoverTypeWithHighestR(self) -> (str, int):
 		""" 
 		Go through the landCoverPearsonCorrelations and get the land cover type 
-		with the highest correlation
+		and r value with the highest correlation
 		"""
 		#TODO: get the land cover type with the highest correlation
-		return #TODO
+		return (
+			#TODO: insert land cover type
+			,
+			#TODO: insert land cover type's r value
+			)
 
 	@staticmethod
 	def getCensusTractNumberForState(state : str):
