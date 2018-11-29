@@ -5,14 +5,14 @@ class Analysis:
 	stateNameToCensusTractNum = {'RI':44}
 	nlcdComponents = []
 	
-	def __init__(self, censusTractFile, landCoverFile, imperviousFile) -> None:
+	def __init__(self, censusTractFile, landCoverFile, imperviousFile, state : str) -> None:
 		self.censusTractFile = censusTractFile
 		self.landCoverFile = landCoverFile
 		self.imperviousFile = imperviousFile
 		self.censusTractsGDF = self.getCensusTracts()
 	
 	# NOTE: I think we should leave any graphing up to the user (i.e. just give them the data frame)
-	def performPearsonAnalysisForState(self, state : str) -> (gp.GeoDataFrame,str, int):
+	def performPearsonAnalysisForState(self) -> (gp.GeoDataFrame,str, int):
 		""" Performs the analysis and return the GeoDataFrame and R value """
 
 		if state in stateNameToCensusTractNum:
