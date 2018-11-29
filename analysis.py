@@ -25,19 +25,19 @@ class Analysis:
 
 		
 		return (self.censusTractsGDF, self.landCoverWithHighestR[0], self.landCoverWithHighestR[1])
-	
+	#Sai
 	def getCensusTracts(self) -> gp.GeoDataFrame:
 		""" Get the census tracts for each state """
 		# TODO: use rasterio and GeoPandas to select census tracts for the states
 		stateCensusTract = gp.read_file(r"../Tract_2010Census_DP1/Tract_2010Census_DP1.shp")
 		stateCensusTract.head()
 		return stateCensusTract
-
+	#Valeria
 	def calcPopulationDensity(self) -> None:
 		""" Calcluate the populaiton density and add a column to the censusTractsGDF """
 		#TODO: calculate the population density and add a column
 	
-
+	#Devin 
 	def calcImperviousSurfaceCoverPercentage(self) -> None:
 		""" 
 		Calculate the impervious surface cover percentage. Add the calculations
@@ -46,7 +46,7 @@ class Analysis:
 		#TODO: calculate the impervious surface cover percentage
 
 		#TODO: add the calculations to self.censusTractsGDF
-
+	#Devin
 	def calcNLCDComponentsPercentages(self) -> None:
 		"""
 		For each land cover type - loop through, calculate, and add the percentage
@@ -57,7 +57,7 @@ class Analysis:
 
 			#TODO: add the land o column to census tract GDF
 			pass
-	
+	#Daniel
 	def calcPearsonCorrelationForImperviousLandCover() -> None:
 		""" 
 		Calculate the Pearson correlation coefficient for population density and
@@ -77,7 +77,7 @@ class Analysis:
 		else:
 			# self.landCoverPearsonCorrelations['impervious'] = #TODO: fill in the r value
 			pass
-	
+	#Daniel
 	def calcPearsonCorrelationForNLCDComponents() -> None:
 		""" 
 		Calculate the Pearson correlation coefficient for population density and
@@ -97,7 +97,7 @@ class Analysis:
 			else:
 				# self.landCoverPearsonCorrelations[landCover] = #TODO: fill in the r value
 				pass
-
+	#Sai
 	def getLandCoverTypeWithHighestR(self) -> (str, int):
 		""" 
 		Go through the landCoverPearsonCorrelations and get the land cover type 
