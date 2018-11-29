@@ -82,16 +82,15 @@ class Analysis:
 		Calculate the Pearson correlation coefficient for population density and
 		the impervious land cover 
 		"""
-		#TODO: calculate the Pearson correlation
+		#TODO: calculate the Pearson correlation using the censusTractsGDF
 
 		#TODO: add the land cover type and the r value to a dictionary in the class
 		if self.landCoverPearsonCorrelations == None:
 			#TODO
-			"""
 			self.landCoverPearsonCorrelations = {
-				'impervious': fill in the r value
+				'impervious': "fill in the r value"
 			}
-			"""
+
 			pass
 		else:
 			# self.landCoverPearsonCorrelations['impervious'] = #TODO: fill in the r value
@@ -103,16 +102,14 @@ class Analysis:
 		each of the NCLD components
 		"""
 		for landCover in ncldComponents:
-			#TODO: calculate the Pearson correlation 
+			#TODO: calculate the Pearson correlation using the censusTractsGDF
 
 			#TODO: add the land cover type and the r value to a dictionary in the class
 			if self.landCoverPearsonCorrelations == None:
 				#TODO
-				"""
 				self.landCoverPearsonCorrelations = {
-					landCover : fill in the r value
+					landCover : "fill in the r value"
 				}
-				"""
 			else:
 				# self.landCoverPearsonCorrelations[landCover] = #TODO: fill in the r value
 				pass
@@ -123,13 +120,8 @@ class Analysis:
 		and r value with the highest correlation
 		"""
 		#TODO: get the land cover type with the highest correlation
-		"""
-		return (
-			#TODO: insert land cover type
-			,
-			#TODO: insert land cover type's r value
-			)
-		"""
+		lc = max(self.landCoverPearsonCorrelations.keys(), key=(lambda k: self.landCoverPearsonCorrelations[k]))
+		return (lc, self.landCoverPearsonCorrelations[lc])
 
 	
 
