@@ -59,8 +59,8 @@ class Analysis:
 	#Devin 
 	def calcImperviousSurfaceCoverPercentage(self) -> None:
 		""" 
-		Calculate the impervious surface cover percentage. Add the calculations
-		to the censusTractsGDF
+		Calculate the impervious surface cover percentage using the censusTractsGDF. 
+		Add the calculations to the censusTractsGDF as a column
 		"""
 		#TODO: calculate the impervious surface cover percentage
 
