@@ -2,54 +2,56 @@ import pandas as pd
 import geopandas as gp
 import os.path as path
 
+stateNameToCensusTractNum = {'RI':44}
+nlcdComponents = []
+
 class Analysis:
-	stateNameToCensusTractNum = {'RI':44}
-	nlcdComponents = []
 	
 	def __init__(self, censusTractFile : str, landCoverFile : str, imperviousFile : str) -> None:
-		import reduce from functools
+		from functools import reduce 
 		# check if all files exist
 		if reduce(lambda x,y: (x and path.isfile(y)), [censusTractFile, landCoverFile, imperviousFile], True):
 			self.censusTractFile = censusTractFile
 			self.landCoverFile = landCoverFile
 			self.imperviousFile = imperviousFile
+			print("Reading in National Census Tract Data...")
+			self.nationalCensusTractsGDF = gp.read_file(self.censusTractFile)
 		else:
 			raise ValueError('Please provide valid file name and paths')
-	
+
 	# NOTE: I think we should leave any graphing outside this class (i.e. just give them the data frame)
 	#Sai
-	def performPearsonAnalysisForState(self, state : str) -> (gp.GeoDataFrame,str, int):
+	def performPearsonAnalysisForState(self) -> (gp.GeoDataFrame,str, int):
 		""" Performs the analysis and return the GeoDataFrame and R value """
+		print("Performing Pearson analysis for census tract number: " + self.censusTractNum)
+
+		# calculate the population densities and land cover percentages
+		calcImperviousSurfaceCoverPercentage()
+		calcLandCoverPercentages()
+		calcPopulationDensity()
+		self.landCoverWithHighestR = getLandCoverTypeWithHighestR()
+		
+		return (self.stateCensusTract, self.landCoverWithHighestR[0], self.landCoverWithHighestR[1])
+
+	#Sai
+	def setCensusTractDataFrameForState(self, state : str):
+		""" Get the census tracts for the specific state """
 
 		# check if the state user provided is valid
 		if state in stateNameToCensusTractNum:
-			# first get the census tract data
+			# first set the census tract number
 			self.censusTractNum = stateNameToCensusTractNum[state]
-			self.censusTractsGDF = self.getCensusTracts()
 
-			# calculate the population densities and land cover percentages
-			calcImperviousSurfaceCoverPercentage()
-			calcLandCoverPercentages()
-			calcPopulationDensity()
-			self.landCoverWithHighestR = getLandCoverTypeWithHighestR()
+			# use GeoPandas to clean up the data frame
+			# TODO: select only the columns we need
+			colNames = ['GEOID10','DP0010001']
+			stateCensusTractGDF = self.nationalCensusTractsGDF[colNames]
+
+			# select only the census tract rows we need
+			# creating filter
+			self.stateCensusTractGDF = stateCensusTractGDF[stateCensusTractGDF['GEOID10'].str.startswith(str(self.censusTractNum))]
 		else:
 			raise TypeError('Please pass in a valid state abbrevation')
-		return (self.censusTractsGDF, self.landCoverWithHighestR[0], self.landCoverWithHighestR[1])
-
-	#Sai
-	def getCensusTracts(self) -> gp.GeoDataFrame:
-		""" Get the census tracts for each state """
-		# use GeoPandas to read in census tracts data for the states
-		stateCensusTract = gp.read_file(self.censusTractFile)
-
-		# TODO: select only the columns we need
-		colNames = ['GEOID','DP0010001']
-		stateCensusTract = stateCensusTract[colNames]
-
-		# select only the census tract rows we need
-		stateCensusTract = stateCensusTract[stateCensusTract.GEOID == self.censusTractNum]
-
-		return stateCensusTract
 
 	#Valeria
 	def calcPopulationDensity(self) -> None:
