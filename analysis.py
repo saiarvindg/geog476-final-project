@@ -16,19 +16,27 @@ class Analysis:
 			self.imperviousFile = imperviousFile
 			print("Reading in National Census Tract Data...")
 			self.nationalCensusTractsGDF = gp.read_file(self.censusTractFile)
+			self.calcPopDensityAndLandCoverPercents()
 		else:
 			raise ValueError('Please provide valid file name and paths')
+
+	def calcPopDensityAndLandCoverPercents(self) -> None:
+		# calculate the population densities and land cover percentages
+		print("Calculating Imprevious Surface Cover Percentage...")
+		self.calcImperviousSurfaceCoverPercentage()
+		print("Calculating Land Cover Percentages...")
+		self.calcLandCoverPercentages()
+		print("Calculating Population Density...")
+		self.calcPopulationDensity()
 
 	# NOTE: I think we should leave any graphing outside this class (i.e. just give them the data frame)
 	#Sai
 	def performPearsonAnalysisForState(self) -> (gp.GeoDataFrame,str, int):
 		""" Performs the analysis and return the GeoDataFrame and R value """
 		print("Performing Pearson analysis for census tract number: " + self.censusTractNum)
-
-		# calculate the population densities and land cover percentages
-		calcImperviousSurfaceCoverPercentage()
-		calcLandCoverPercentages()
-		calcPopulationDensity()
+		
+		self.calcPearsonCorrelationForImperviousLandCover()
+		self.calcPearsonCorrelationForNLCDComponents()
 		self.landCoverWithHighestR = getLandCoverTypeWithHighestR()
 		
 		return (self.stateCensusTract, self.landCoverWithHighestR[0], self.landCoverWithHighestR[1])
