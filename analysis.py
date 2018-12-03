@@ -3,6 +3,7 @@ import geopandas as gp
 import numpy as np
 import os.path as path
 import matplotlib.pyplot as plt
+import rasterstats as rs
 
 stateNameToCensusTractNum = {'RI':44}
 nlcdComponents = []
@@ -19,10 +20,10 @@ class Analysis:
 			print("Reading in National Census Tract Data...")
 			self.nationalCensusTractsGDF = gp.read_file(self.censusTractFile)
 			#self.imperviousRaster = rasterio.open(self.imperviousFile)
-			self.landCoverRaster = rasterio.open(self.landCoverFile)
+			#self.landCoverRaster = rasterio.open(self.landCoverFile)
 			#self.impBand = self.imperviousRaster.read(1)
 			#print(self.imperviousRaster.crs)
-			self.landCoverBand = self.landCoverRaster.read(1)
+			#self.landCoverBand = self.landCoverRaster.read(1)
 			self.calcPopDensityAndLandCoverPercents()
 		else:
 			raise ValueError('Please provide valid file name and paths')
@@ -59,10 +60,11 @@ class Analysis:
 
 			# use GeoPandas to clean up the data frame
 			# TODO: select only the columns we need
-			#I added geometry as a needed column -Devin
-			colNames = ['GEOID10','DP0010001','geometry']
+			#I added geometry, land area as needed columns -Devin
+			colNames = ['GEOID10','DP0010001','geometry','ALAND10']
+			#convert square meters to square miles -Devin
+			self.nationalCensusTractsGDF['ALAND10'] *= 3.8610215854245E-7
 			self.stateCensusTractGDF = self.nationalCensusTractsGDF[colNames]
-
 			# select only the census tract rows we need
 			# creating filter
 			self.stateCensusTractGDF = self.stateCensusTractGDF[self.stateCensusTractGDF['GEOID10'].str.startswith(str(self.censusTractNum))]
@@ -81,6 +83,8 @@ class Analysis:
 		Calculate the impervious surface cover percentage using the censusTractsGDF. 
 		Add the calculations to the censusTractsGDF as a column called "impervious_mean"
 		'''
+		#add population density column for census tracts        
+		self.stateCensusTractGDF['pop_density'] = self.stateCensusTractGDF['DP0010001']/self.stateCensusTractGDF['ALAND10']
 		self.impervious_stats = rs.zonal_stats(self.stateCensusTractGDF, self.imperviousFile, prefix = "impervous_", stats = 'mean', geojson_out = True)
 		self.stateCensusTractGDF = gp.GeoDataFrame.from_features(self.impervious_stats)
 	#Devin
@@ -98,6 +102,16 @@ class Analysis:
 		       73:'herbaceous', 74:'herbaceous', 90:'wetlands', 95:'wetlands', 11:'water'}
 		self.nlcd_stats = rs.zonal_stats(self.stateCensusTractGDF, self.landCoverFile, categorical = True, category_map = cmap, geojson_out = True)
 		self.stateCensusTractGDF = gp.GeoDataFrame.from_features(self.nlcd_stats)
+		#changes NaN to 0
+		self.stateCensusTractGDF = self.stateCensusTractGDF.fillna(0)
+        
+		land_covers = []
+		for key in cmap:
+			if cmap[key] not in land_covers:
+				 land_covers.append(cmap[key])       
+		for i in land_covers:
+			if i in self.stateCensusTractGDF.columns:
+				self.stateCensusTractGDF[i] = self.stateCensusTractGDF[i]/self.stateCensusTractGDF['nlcdcount']           
 		#TODO: i need to divide the land cover columns by the nlcd count col to get the percentage land cover
 	#Daniel
 	def calcPearsonCorrelationForImperviousLandCover() -> None:
@@ -157,5 +171,3 @@ a.calcImperviousSurfaceCoverPercentage()
 
 a.calcNLCDComponentsPercentages()
 a.stateCensusTractGDF.head() 
-	
-	
