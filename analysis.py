@@ -2,6 +2,7 @@ import pandas as pd
 import geopandas as gp
 import numpy as np
 import os.path as path
+import matplotlib.pyplot as plt
 
 stateNameToCensusTractNum = {'RI':44}
 nlcdComponents = []
@@ -17,14 +18,20 @@ class Analysis:
 			self.imperviousFile = imperviousFile
 			print("Reading in National Census Tract Data...")
 			self.nationalCensusTractsGDF = gp.read_file(self.censusTractFile)
+			print(self.nationalCensusTractsGDF.crs)
+			#self.imperviousRaster = rasterio.open(self.imperviousFile)
+			self.landCoverRaster = rasterio.open(self.landCoverFile)
+			#self.impBand = self.imperviousRaster.read(1)
+			#print(self.imperviousRaster.crs)
+			self.landCoverBand = self.landCoverRaster.read(1)
 			self.calcPopDensityAndLandCoverPercents()
 		else:
 			raise ValueError('Please provide valid file name and paths')
 
 	def calcPopDensityAndLandCoverPercents(self) -> None:
 		# calculate the population densities and land cover percentages
-		print("Calculating Imprevious Surface Cover Percentage...")
-		self.calcImperviousSurfaceCoverPercentage()
+		#print("Calculating Imprevious Surface Cover Percentage...")
+		#self.calcImperviousSurfaceCoverPercentage()
 		print("Calculating Land Cover Percentages...")
 		self.calcNLCDComponentsPercentages()
 		print("Calculating Population Density...")
@@ -53,12 +60,14 @@ class Analysis:
 
 			# use GeoPandas to clean up the data frame
 			# TODO: select only the columns we need
-			colNames = ['GEOID10','DP0010001']
-			stateCensusTractGDF = self.nationalCensusTractsGDF[colNames]
+			#I added geometry as a needed column -Devin
+			colNames = ['GEOID10','DP0010001','geometry']
+			self.stateCensusTractGDF = self.nationalCensusTractsGDF[colNames]
 
 			# select only the census tract rows we need
 			# creating filter
-			self.stateCensusTractGDF = stateCensusTractGDF[stateCensusTractGDF['GEOID10'].str.startswith(str(self.censusTractNum))]
+			self.stateCensusTractGDF = self.stateCensusTractGDF[self.stateCensusTractGDF['GEOID10'].str.startswith(str(self.censusTractNum))]
+			self.stateCensusTractGDF = self.stateCensusTractGDF.to_crs({'init': 'ESRI:102003'})
 		else:
 			raise TypeError('Please pass in a valid state abbrevation')
 
@@ -69,10 +78,15 @@ class Analysis:
 	
 	#Devin 
 	def calcImperviousSurfaceCoverPercentage(self) -> None:
-		""" 
+		'''
 		Calculate the impervious surface cover percentage using the censusTractsGDF. 
-		Add the calculations to the censusTractsGDF as a column
-		"""
+		Add the calculations to the censusTractsGDF as a column called "impervious mean"
+		currently there is an issue with the projection
+		'''
+		self.impervious_stats = rs.zonal_stats(self.stateCensusTractGDF, self.imperviousFile, prefix = "impervous_", geojson_out = True)
+		self.stateCensusTractGDF = gp.GeoDataFrame.from_features(self.impervious_stats)
+		self.stateCensusTractGDF.head()      
+		print('done')                                                     
 		#TODO: calculate the impervious surface cover percentage
 
 		#TODO: add the calculations to self.censusTractsGDF
@@ -134,7 +148,3 @@ class Analysis:
 		#TODO: get the land cover type with the highest correlation
 		lc = max(self.landCoverPearsonCorrelations.keys(), key=(lambda k: self.landCoverPearsonCorrelations[k]))
 		return (lc, self.landCoverPearsonCorrelations[lc])
-
-	
-
-	
