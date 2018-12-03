@@ -102,3 +102,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+ri_nlcd3.tif

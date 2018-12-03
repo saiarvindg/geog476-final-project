@@ -18,7 +18,6 @@ class Analysis:
 			self.imperviousFile = imperviousFile
 			print("Reading in National Census Tract Data...")
 			self.nationalCensusTractsGDF = gp.read_file(self.censusTractFile)
-			print(self.nationalCensusTractsGDF.crs)
 			#self.imperviousRaster = rasterio.open(self.imperviousFile)
 			self.landCoverRaster = rasterio.open(self.landCoverFile)
 			#self.impBand = self.imperviousRaster.read(1)
@@ -32,8 +31,8 @@ class Analysis:
 		# calculate the population densities and land cover percentages
 		#print("Calculating Imprevious Surface Cover Percentage...")
 		#self.calcImperviousSurfaceCoverPercentage()
-		print("Calculating Land Cover Percentages...")
-		self.calcNLCDComponentsPercentages()
+		#print("Calculating Land Cover Percentages...")
+		#self.calcNLCDComponentsPercentages()
 		print("Calculating Population Density...")
 		self.calcPopulationDensity()
 
@@ -82,27 +81,24 @@ class Analysis:
 		Calculate the impervious surface cover percentage using the censusTractsGDF. 
 		Add the calculations to the censusTractsGDF as a column called "impervious_mean"
 		'''
-		self.impervious_stats = rs.zonal_stats(self.stateCensusTractGDF, self.imperviousFile, prefix = "impervous_", geojson_out = True)
+		self.impervious_stats = rs.zonal_stats(self.stateCensusTractGDF, self.imperviousFile, prefix = "impervous_", stats = 'mean', geojson_out = True)
 		self.stateCensusTractGDF = gp.GeoDataFrame.from_features(self.impervious_stats)
-		self.stateCensusTractGDF.head()                                            
-		#TODO: the raster and the shapefile need to be in the same projection
 	#Devin
 	def calcNLCDComponentsPercentages(self) -> None:
 		"""
 		For each land cover type - loop through, calculate, and add the percentage
 		of each land cover type to the censusTractsGDF
 		"""
+		#finds pixel count so that percentages can be determined        
+		self.nlcd_count = rs.zonal_stats(self.stateCensusTractGDF, self.landCoverFile, prefix = 'nlcd', stats = 'count', geojson_out = True)
+		self.stateCensusTractGDF = gp.GeoDataFrame.from_features(self.nlcd_count)    
 		#cmap is a legend corresponding pixels to classes
 		cmap = {21: 'developed', 22: 'developed', 23: 'developed', 24: 'developed', 81: 'planted', 82: 'planted', 31:'barren', 
 		       41: 'forest', 42: 'forest', 43: 'forest', 51:'shrubland', 52:'shrubland', 71:'herbaceous', 72:'herbaceous',
 		       73:'herbaceous', 74:'herbaceous', 90:'wetlands', 95:'wetlands', 11:'water'}
-		rs.zonal_stats(self.stateCensusTractGDF, self.landCoverFile)
-		for landCover in nlcdComponents:
-			#TODO: calculate the percentage of the landCover for each census tract
-
-			#TODO: add the land o column to census tract GDF
-			pass
-	
+		self.nlcd_stats = rs.zonal_stats(self.stateCensusTractGDF, self.landCoverFile, categorical = True, category_map = cmap, geojson_out = True)
+		self.stateCensusTractGDF = gp.GeoDataFrame.from_features(self.nlcd_stats)
+		#TODO: i need to divide the land cover columns by the nlcd count col to get the percentage land cover
 	#Daniel
 	def calcPearsonCorrelationForImperviousLandCover() -> None:
 		""" 
@@ -150,5 +146,16 @@ class Analysis:
 		lc = max(self.landCoverPearsonCorrelations.keys(), key=(lambda k: self.landCoverPearsonCorrelations[k]))
 		return (lc, self.landCoverPearsonCorrelations[lc])
 
+#test cases
+census = r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\ri_census_tracts\ri_census_tracts.shp'
+imp = r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\ri_imp6.tif'
+nlcd = r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\ri_nlcd4.tif'
+a = Analysis(census, nlcd, imp)
+a.setCensusTractDataFrameForState("RI")
+a.stateCensusTractGDF.plot()
+a.calcImperviousSurfaceCoverPercentage()
+
+a.calcNLCDComponentsPercentages()
+a.stateCensusTractGDF.head() 
 	
 	
