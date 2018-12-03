@@ -67,7 +67,7 @@ class Analysis:
 			# select only the census tract rows we need
 			# creating filter
 			self.stateCensusTractGDF = self.stateCensusTractGDF[self.stateCensusTractGDF['GEOID10'].str.startswith(str(self.censusTractNum))]
-			self.stateCensusTractGDF = self.stateCensusTractGDF.to_crs({'init': 'ESRI:102003'})
+			self.stateCensusTractGDF = self.stateCensusTractGDF.to_crs({'init': 'epsg:5070'})
 		else:
 			raise TypeError('Please pass in a valid state abbrevation')
 
@@ -85,11 +85,8 @@ class Analysis:
 		'''
 		self.impervious_stats = rs.zonal_stats(self.stateCensusTractGDF, self.imperviousFile, prefix = "impervous_", geojson_out = True)
 		self.stateCensusTractGDF = gp.GeoDataFrame.from_features(self.impervious_stats)
-		self.stateCensusTractGDF.head()      
-		print('done')                                                     
-		#TODO: calculate the impervious surface cover percentage
-
-		#TODO: add the calculations to self.censusTractsGDF
+		self.stateCensusTractGDF.head()                                            
+		#TODO: the raster and the shapefile need to be in the same projection
 	#Devin
 	def calcNLCDComponentsPercentages(self) -> None:
 		"""
@@ -148,3 +145,5 @@ class Analysis:
 		#TODO: get the land cover type with the highest correlation
 		lc = max(self.landCoverPearsonCorrelations.keys(), key=(lambda k: self.landCoverPearsonCorrelations[k]))
 		return (lc, self.landCoverPearsonCorrelations[lc])
+
+	
