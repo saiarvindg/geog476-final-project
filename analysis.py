@@ -80,8 +80,7 @@ class Analysis:
 	def calcImperviousSurfaceCoverPercentage(self) -> None:
 		'''
 		Calculate the impervious surface cover percentage using the censusTractsGDF. 
-		Add the calculations to the censusTractsGDF as a column called "impervious mean"
-		currently there is an issue with the projection
+		Add the calculations to the censusTractsGDF as a column called "impervious_mean"
 		'''
 		self.impervious_stats = rs.zonal_stats(self.stateCensusTractGDF, self.imperviousFile, prefix = "impervous_", geojson_out = True)
 		self.stateCensusTractGDF = gp.GeoDataFrame.from_features(self.impervious_stats)
@@ -93,6 +92,11 @@ class Analysis:
 		For each land cover type - loop through, calculate, and add the percentage
 		of each land cover type to the censusTractsGDF
 		"""
+		#cmap is a legend corresponding pixels to classes
+		cmap = {21: 'developed', 22: 'developed', 23: 'developed', 24: 'developed', 81: 'planted', 82: 'planted', 31:'barren', 
+		       41: 'forest', 42: 'forest', 43: 'forest', 51:'shrubland', 52:'shrubland', 71:'herbaceous', 72:'herbaceous',
+		       73:'herbaceous', 74:'herbaceous', 90:'wetlands', 95:'wetlands', 11:'water'}
+		rs.zonal_stats(self.stateCensusTractGDF, self.landCoverFile)
 		for landCover in nlcdComponents:
 			#TODO: calculate the percentage of the landCover for each census tract
 
@@ -146,4 +150,5 @@ class Analysis:
 		lc = max(self.landCoverPearsonCorrelations.keys(), key=(lambda k: self.landCoverPearsonCorrelations[k]))
 		return (lc, self.landCoverPearsonCorrelations[lc])
 
+	
 	
