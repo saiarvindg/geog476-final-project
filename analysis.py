@@ -1,5 +1,6 @@
 import pandas as pd
 import geopandas as gp
+import numpy as np
 import os.path as path
 
 stateNameToCensusTractNum = {'RI':44}
@@ -25,7 +26,7 @@ class Analysis:
 		print("Calculating Imprevious Surface Cover Percentage...")
 		self.calcImperviousSurfaceCoverPercentage()
 		print("Calculating Land Cover Percentages...")
-		self.calcLandCoverPercentages()
+		self.calcNLCDComponentsPercentages()
 		print("Calculating Population Density...")
 		self.calcPopulationDensity()
 
@@ -81,11 +82,12 @@ class Analysis:
 		For each land cover type - loop through, calculate, and add the percentage
 		of each land cover type to the censusTractsGDF
 		"""
-		for landCover in ncldComponents:
+		for landCover in nlcdComponents:
 			#TODO: calculate the percentage of the landCover for each census tract
 
 			#TODO: add the land o column to census tract GDF
 			pass
+	
 	#Daniel
 	def calcPearsonCorrelationForImperviousLandCover() -> None:
 		""" 
