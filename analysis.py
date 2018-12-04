@@ -161,9 +161,9 @@ class Analysis:
 		return (lc, self.landCoverPearsonCorrelations[lc])
 
 #test cases
-census = r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\ri_census_tracts\ri_census_tracts.shp'
-imp = r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\ri_imp6.tif'
-nlcd = r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\ri_nlcd4.tif'
+census = r'./ri_census_tracts/ri_census_tracts.shp'
+imp = r'./ri_imp6.tif'
+nlcd = r'./ri_nlcd4.tif'
 a = Analysis(census, nlcd, imp)
 a.setCensusTractDataFrameForState("RI")
 a.stateCensusTractGDF.plot()
