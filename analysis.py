@@ -75,7 +75,12 @@ class Analysis:
 	#Valeria
 	def calcPopulationDensity(self) -> None:
 		""" Calcluate the populaiton density and add a column to the censusTractsGDF """
-		#TODO: calculate the population density and add a column
+		# selecting rows that correspond with the state
+		# selected_state= self.nationalCensusTractsGDF[self.nationalCensusTractsGDF.STATE_FIPS=  ]
+		# sums_population_area= selected_state.sum(axis=0)
+		# pop_density_calclulated= sums_population_area.DP001001/sums_population_area.LAND_AREA
+		# adding new col?
+		# self.nationalCensusTractsGDF['Population Density']=None
 	
 	#Devin 
 	def calcImperviousSurfaceCoverPercentage(self) -> None:
