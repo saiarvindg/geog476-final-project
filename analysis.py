@@ -4,6 +4,9 @@ import numpy as np
 import os.path as path
 import matplotlib.pyplot as plt
 import rasterstats as rs
+import scipy.stats
+import matplotlib
+import numpy as np
 
 stateNameToCensusTractNum = {'RI':44}
 nlcdComponents = []
@@ -19,11 +22,6 @@ class Analysis:
 			self.imperviousFile = imperviousFile
 			print("Reading in National Census Tract Data...")
 			self.nationalCensusTractsGDF = gp.read_file(self.censusTractFile)
-			#self.imperviousRaster = rasterio.open(self.imperviousFile)
-			#self.landCoverRaster = rasterio.open(self.landCoverFile)
-			#self.impBand = self.imperviousRaster.read(1)
-			#print(self.imperviousRaster.crs)
-			#self.landCoverBand = self.landCoverRaster.read(1)
 			self.calcPopDensityAndLandCoverPercents()
 		else:
 			raise ValueError('Please provide valid file name and paths')
@@ -52,7 +50,7 @@ class Analysis:
 	#Sai
 	def setCensusTractDataFrameForState(self, state : str):
 		""" Get the census tracts for the specific state """
-
+		self.state = state
 		# check if the state user provided is valid
 		if state in stateNameToCensusTractNum:
 			# first set the census tract number
@@ -68,7 +66,8 @@ class Analysis:
 			# select only the census tract rows we need
 			# creating filter
 			self.stateCensusTractGDF = self.stateCensusTractGDF[self.stateCensusTractGDF['GEOID10'].str.startswith(str(self.censusTractNum))]
-			self.stateCensusTractGDF = self.stateCensusTractGDF.to_crs({'init': 'epsg:5070'})
+			#crs data is shown as a proj 4 string 
+			self.stateCensusTractGDF = self.stateCensusTractGDF.to_crs('+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs')
 		else:
 			raise TypeError('Please pass in a valid state abbrevation')
 
@@ -85,8 +84,20 @@ class Analysis:
 		'''
 		#add population density column for census tracts        
 		self.stateCensusTractGDF['pop_density'] = self.stateCensusTractGDF['DP0010001']/self.stateCensusTractGDF['ALAND10']
-		self.impervious_stats = rs.zonal_stats(self.stateCensusTractGDF, self.imperviousFile, prefix = "impervous_", stats = 'mean', geojson_out = True)
+		self.impervious_stats = rs.zonal_stats(self.stateCensusTractGDF, self.imperviousFile, prefix = "impervious_", stats = 'mean', geojson_out = True)
 		self.stateCensusTractGDF = gp.GeoDataFrame.from_features(self.impervious_stats)
+		#read these variables into lists so that scipy can determine statistics
+		pop_density_list = self.stateCensusTractGDF['pop_density'].tolist()
+		impervious_mean_list = self.stateCensusTractGDF['impervious_mean'].tolist()
+		#need to remove nan values
+		pop_density_list = np.array(pop_density_list)
+		pop_density_list = np.nan_to_num(pop_density_list)
+		impervious_mean_list = np.array(impervious_mean_list)
+		impervious_mean_list = np.nan_to_num(impervious_mean_list)
+		#linear regression stats
+		slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(pop_density_list, impervious_mean_list)
+		self.plotImperviousRegression(pop_density_list, impervious_mean_list, r_value, intercept, slope)
+		plt.show()
 	#Devin
 	def calcNLCDComponentsPercentages(self) -> None:
 		"""
@@ -105,14 +116,37 @@ class Analysis:
 		#changes NaN to 0
 		self.stateCensusTractGDF = self.stateCensusTractGDF.fillna(0)
         
-		land_covers = []
+		self.land_covers = []
+		#dictionary will contain land cover classes, their r^2 values associated with pop density
+		self.land_cover_stats = {}
 		for key in cmap:
-			if cmap[key] not in land_covers:
-				 land_covers.append(cmap[key])       
-		for i in land_covers:
+			if cmap[key] not in self.land_covers:
+				self.land_covers.append(cmap[key])
+		#divide the land cover classes by the total nmber of land cover pixels to determine land cover percentage for that census tract                    
+		for i in self.land_covers:
 			if i in self.stateCensusTractGDF.columns:
-				self.stateCensusTractGDF[i] = self.stateCensusTractGDF[i]/self.stateCensusTractGDF['nlcdcount']           
-		#TODO: i need to divide the land cover columns by the nlcd count col to get the percentage land cover
+				self.stateCensusTractGDF[i] = self.stateCensusTractGDF[i]/self.stateCensusTractGDF['nlcdcount']
+				#self.land_cover_r2[i] = r2_score(self.stateCensusTractGDF['pop_density'],self.stateCensusTractGDF[i])
+    
+	def plotImperviousRegression(self, pop_density, percent_impervious, r, intercept, slope):
+		plt.style.use('seaborn-darkgrid')
+
+		#scatter plot of points
+		plt.scatter(pop_density, percent_impervious, color = '#31a354',
+                    edgecolors = 'black')
+		print(slope, intercept, r**2)
+		legend_label = matplotlib.patches.Patch(color='none', 
+                                      label='y = {:.4f}x + {:.4f}, R$^2$ = {:.4f}'.format(slope, intercept, r**2))
+		plt.legend(handles=[legend_label])
+
+		#line = slope * pop_density + intercept
+		#plt.plot(pop_density, line, 'r', zorder = 5, 
+        #         label='y = {:.2f}x + {:.2f}, R$^2$ = {:.2f}'.format(slope, intercept, r**2), 
+        #         color = '#984ea3', linewidth = 2.5)
+		plt.xlabel('People per square mile')
+		plt.ylabel('Percent Imperviousness')
+		plt.title('Percent Imperviousness vs. Pop Density'.format(self.state))
+
 	#Daniel
 	def calcPearsonCorrelationForImperviousLandCover() -> None:
 		""" 
@@ -160,14 +194,14 @@ class Analysis:
 		lc = max(self.landCoverPearsonCorrelations.keys(), key=(lambda k: self.landCoverPearsonCorrelations[k]))
 		return (lc, self.landCoverPearsonCorrelations[lc])
 
+	
 #test cases
 census = r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\ri_census_tracts\ri_census_tracts.shp'
 imp = r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\ri_imp6.tif'
 nlcd = r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\ri_nlcd4.tif'
 a = Analysis(census, nlcd, imp)
 a.setCensusTractDataFrameForState("RI")
-a.stateCensusTractGDF.plot()
 a.calcImperviousSurfaceCoverPercentage()
 
 a.calcNLCDComponentsPercentages()
-a.stateCensusTractGDF.head() 
+a.stateCensusTractGDF
