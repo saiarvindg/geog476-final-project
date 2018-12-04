@@ -11,6 +11,19 @@ import numpy as np
 stateNameToCensusTractNum = {'RI':44}
 nlcdComponents = []
 
+import pandas as pd
+import geopandas as gp
+import numpy as np
+import os.path as path
+import matplotlib.pyplot as plt
+import rasterstats as rs
+import scipy.stats
+import matplotlib
+import numpy as np
+
+stateNameToCensusTractNum = {'RI':44}
+nlcdComponents = []
+
 class Analysis:
 	
 	def __init__(self, censusTractFile : str, landCoverFile : str, imperviousFile : str) -> None:
@@ -103,18 +116,19 @@ class Analysis:
 		impervious_mean_list = self.stateCensusTractGDF['impervious_mean'].tolist()
 		#need to remove nan values
 		pop_density_list = np.array(pop_density_list)
-		pop_density_list = np.nan_to_num(pop_density_list)
+		self.pop_density_list = np.nan_to_num(pop_density_list)
 		impervious_mean_list = np.array(impervious_mean_list)
 		impervious_mean_list = np.nan_to_num(impervious_mean_list)
 		#linear regression stats
-		slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(pop_density_list, impervious_mean_list)
-		self.plotImperviousRegression(pop_density_list, impervious_mean_list, r_value, intercept, slope)
+		slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(self.pop_density_list, impervious_mean_list)
+		self.plotRegression(self.pop_density_list, impervious_mean_list, r_value, intercept, slope, "impervious")
 		plt.show()
 	#Devin
 	def calcNLCDComponentsPercentages(self) -> None:
 		"""
 		For each land cover type - loop through, calculate, and add the percentage
 		of each land cover type to the censusTractsGDF
+        Because this analysis is based on population density it should be called after calcImperviousSurfaceCoverPercentage
 		"""
 		#finds pixel count so that percentages can be determined        
 		self.nlcd_count = rs.zonal_stats(self.stateCensusTractGDF, self.landCoverFile, prefix = 'nlcd', stats = 'count', geojson_out = True)
@@ -127,7 +141,7 @@ class Analysis:
 		self.stateCensusTractGDF = gp.GeoDataFrame.from_features(self.nlcd_stats)
 		#changes NaN to 0
 		self.stateCensusTractGDF = self.stateCensusTractGDF.fillna(0)
-        
+       
 		self.land_covers = []
 		#dictionary will contain land cover classes, their r^2 values associated with pop density
 		self.land_cover_stats = {}
@@ -137,19 +151,23 @@ class Analysis:
 		#divide the land cover classes by the total nmber of land cover pixels to determine land cover percentage for that census tract                    
 		for i in self.land_covers:
 			if i in self.stateCensusTractGDF.columns:
-
-				self.stateCensusTractGDF[i] = self.stateCensusTractGDF[i]/self.stateCensusTractGDF['nlcdcount']
-				#self.land_cover_r2[i] = r2_score(self.stateCensusTractGDF['pop_density'],self.stateCensusTractGDF[i])
-    
-
-				self.stateCensusTractGDF[i] = self.stateCensusTractGDF[i]/self.stateCensusTractGDF['nlcdcount']           
+				#calculate percent land cover
+				self.stateCensusTractGDF[i] = 100 * self.stateCensusTractGDF[i]/self.stateCensusTractGDF['nlcdcount']
+				lc_mean_list = self.stateCensusTractGDF[i].tolist()
+				print(lc_mean_list)
+				lc_mean_list = np.array(lc_mean_list)
+				lc_mean_list = np.nan_to_num(lc_mean_list)
+				slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(self.pop_density_list, 
+                                                                                     lc_mean_list)
+				self.plotRegression(self.pop_density_list, lc_mean_list, r_value, intercept, slope, i)
+				plt.show()
 		#TODO: i need to divide the land cover columns by the nlcd count col to get the percentage land cover
 
-	def plotImperviousRegression(self, pop_density, percent_impervious, r, intercept, slope):
+	def plotRegression(self, pop_density, percent_landcover, r, intercept, slope, lc_type):
 		plt.style.use('seaborn-darkgrid')
 
 		#scatter plot of points
-		plt.scatter(pop_density, percent_impervious, color = '#31a354',
+		plt.scatter(pop_density, percent_landcover, color = '#31a354',
                     edgecolors = 'black')
 		print(slope, intercept, r**2)
 		legend_label = matplotlib.patches.Patch(color='none', 
@@ -158,12 +176,8 @@ class Analysis:
 
 
 		plt.xlabel('People per square mile')
-		plt.ylabel('Percent Imperviousness')
-		plt.title('Percent Imperviousness vs. Pop Density'.format(self.state))
-
-		plt.xlabel('People per square mile')
-		plt.ylabel('Percent Imperviousness')
-		plt.title('Percent Imperviousness vs. Pop Density'.format(self.state))	
+		plt.ylabel('Percent {}'.format(lc_type))
+		plt.title('Percent {} vs. Pop Density in {}'.format(lc_type, self.state))
 
 	#Daniel
 	def calcPearsonCorrelationForImperviousLandCover() -> None:
@@ -212,7 +226,6 @@ class Analysis:
 		lc = max(self.landCoverPearsonCorrelations.keys(), key=(lambda k: self.landCoverPearsonCorrelations[k]))
 		return (lc, self.landCoverPearsonCorrelations[lc])
 
-	
 #test cases
 census = r'./ri_census_tracts/ri_census_tracts.shp'
 imp = r'./ri_imp6.tif'
