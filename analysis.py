@@ -74,7 +74,12 @@ class Analysis:
 	#Valeria
 	def calcPopulationDensity(self) -> None:
 		""" Calcluate the populaiton density and add a column to the censusTractsGDF """
-		#TODO: calculate the population density and add a column
+		# selecting rows that correspond with the state
+		# selected_state= self.nationalCensusTractsGDF[self.nationalCensusTractsGDF.STATE_FIPS=  ]
+		# sums_population_area= selected_state.sum(axis=0)
+		# pop_density_calclulated= sums_population_area.DP001001/sums_population_area.LAND_AREA
+		# adding new col?
+		# self.nationalCensusTractsGDF['Population Density']=None
 	
 	#Devin 
 	def calcImperviousSurfaceCoverPercentage(self) -> None:
@@ -196,9 +201,9 @@ class Analysis:
 
 	
 #test cases
-census = r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\ri_census_tracts\ri_census_tracts.shp'
-imp = r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\ri_imp6.tif'
-nlcd = r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\ri_nlcd4.tif'
+census = r'./ri_census_tracts/ri_census_tracts.shp'
+imp = r'./ri_imp6.tif'
+nlcd = r'./ri_nlcd4.tif'
 a = Analysis(census, nlcd, imp)
 a.setCensusTractDataFrameForState("RI")
 a.calcImperviousSurfaceCoverPercentage()
