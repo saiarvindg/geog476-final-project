@@ -50,6 +50,9 @@ class Analysis:
 	#Sai
 	def setCensusTractDataFrameForState(self, state : str):
 		""" Get the census tracts for the specific state """
+
+		#assigned state variable -Devin
+
 		self.state = state
 		# check if the state user provided is valid
 		if state in stateNameToCensusTractNum:
@@ -66,7 +69,11 @@ class Analysis:
 			# select only the census tract rows we need
 			# creating filter
 			self.stateCensusTractGDF = self.stateCensusTractGDF[self.stateCensusTractGDF['GEOID10'].str.startswith(str(self.censusTractNum))]
+
 			#crs data is shown as a proj 4 string 
+
+			#Reprojected. crs data is shown as a proj 4 string -Devin
+
 			self.stateCensusTractGDF = self.stateCensusTractGDF.to_crs('+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs')
 		else:
 			raise TypeError('Please pass in a valid state abbrevation')
@@ -130,9 +137,14 @@ class Analysis:
 		#divide the land cover classes by the total nmber of land cover pixels to determine land cover percentage for that census tract                    
 		for i in self.land_covers:
 			if i in self.stateCensusTractGDF.columns:
+
 				self.stateCensusTractGDF[i] = self.stateCensusTractGDF[i]/self.stateCensusTractGDF['nlcdcount']
 				#self.land_cover_r2[i] = r2_score(self.stateCensusTractGDF['pop_density'],self.stateCensusTractGDF[i])
     
+
+				self.stateCensusTractGDF[i] = self.stateCensusTractGDF[i]/self.stateCensusTractGDF['nlcdcount']           
+		#TODO: i need to divide the land cover columns by the nlcd count col to get the percentage land cover
+
 	def plotImperviousRegression(self, pop_density, percent_impervious, r, intercept, slope):
 		plt.style.use('seaborn-darkgrid')
 
@@ -144,13 +156,14 @@ class Analysis:
                                       label='y = {:.4f}x + {:.4f}, R$^2$ = {:.4f}'.format(slope, intercept, r**2))
 		plt.legend(handles=[legend_label])
 
-		#line = slope * pop_density + intercept
-		#plt.plot(pop_density, line, 'r', zorder = 5, 
-        #         label='y = {:.2f}x + {:.2f}, R$^2$ = {:.2f}'.format(slope, intercept, r**2), 
-        #         color = '#984ea3', linewidth = 2.5)
+
 		plt.xlabel('People per square mile')
 		plt.ylabel('Percent Imperviousness')
 		plt.title('Percent Imperviousness vs. Pop Density'.format(self.state))
+
+		plt.xlabel('People per square mile')
+		plt.ylabel('Percent Imperviousness')
+		plt.title('Percent Imperviousness vs. Pop Density'.format(self.state))	
 
 	#Daniel
 	def calcPearsonCorrelationForImperviousLandCover() -> None:
