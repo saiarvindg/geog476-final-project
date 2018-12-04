@@ -1,15 +1,3 @@
-import pandas as pd
-import geopandas as gp
-import numpy as np
-import os.path as path
-import matplotlib.pyplot as plt
-import rasterstats as rs
-import scipy.stats
-import matplotlib
-import numpy as np
-
-stateNameToCensusTractNum = {'RI':44}
-nlcdComponents = []
 
 import pandas as pd
 import geopandas as gp
@@ -154,7 +142,6 @@ class Analysis:
 				#calculate percent land cover
 				self.stateCensusTractGDF[i] = 100 * self.stateCensusTractGDF[i]/self.stateCensusTractGDF['nlcdcount']
 				lc_mean_list = self.stateCensusTractGDF[i].tolist()
-				print(lc_mean_list)
 				lc_mean_list = np.array(lc_mean_list)
 				lc_mean_list = np.nan_to_num(lc_mean_list)
 				slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(self.pop_density_list, 
