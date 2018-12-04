@@ -23,30 +23,26 @@ class Analysis:
 			self.imperviousFile = imperviousFile
 			print("Reading in National Census Tract Data...")
 			self.nationalCensusTractsGDF = gp.read_file(self.censusTractFile)
-			self.calcPopDensityAndLandCoverPercents()
 		else:
 			raise ValueError('Please provide valid file name and paths')
 
 	def calcPopDensityAndLandCoverPercents(self) -> None:
 		# calculate the population densities and land cover percentages
-		#print("Calculating Imprevious Surface Cover Percentage...")
-		#self.calcImperviousSurfaceCoverPercentage()
-		#print("Calculating Land Cover Percentages...")
-		#self.calcNLCDComponentsPercentages()
+		print("Calculating Imprevious Surface Cover Percentage...")
+		self.calcImperviousSurfaceCoverPercentage()
+		print("Calculating Land Cover Percentages...")
+		self.calcNLCDComponentsPercentages()
 		print("Calculating Population Density...")
-		self.calcPopulationDensity()
+		self.calcStatePopulationDensity()
 
 	# NOTE: I think we should leave any graphing outside this class (i.e. just give them the data frame)
 	#Sai
-	def performPearsonAnalysisForState(self) -> (gp.GeoDataFrame,str, int):
+	def performPearsonAnalysis(self) -> gp.GeoDataFrame:
 		""" Performs the analysis and return the GeoDataFrame and R value """
-		print("Performing Pearson analysis for census tract number: " + self.censusTractNum)
+		print("Performing Pearson analysis for census tract number: " + str(self.censusTractNum))
+		self.calcPopDensityAndLandCoverPercents()
 		
-		self.calcPearsonCorrelationForImperviousLandCover()
-		self.calcPearsonCorrelationForNLCDComponents()
-		self.landCoverWithHighestR = getLandCoverTypeWithHighestR()
-		
-		return (self.stateCensusTract, self.landCoverWithHighestR[0], self.landCoverWithHighestR[1])
+		return self.stateCensusTractGDF
 
 	#Sai
 	def setCensusTractDataFrameForState(self, state : str):
@@ -80,14 +76,17 @@ class Analysis:
 			raise TypeError('Please pass in a valid state abbrevation')
 
 	#Valeria
-	def calcPopulationDensity(self) -> None:
+	def calcStatePopulationDensity(self) -> None:
 		""" Calcluate the populaiton density and add a column to the censusTractsGDF """
 		# selecting rows that correspond with the state
-		# selected_state= self.nationalCensusTractsGDF[self.nationalCensusTractsGDF.STATE_FIPS=  ]
-		# sums_population_area= selected_state.sum(axis=0)
+		sumPopArea = self.stateCensusTractGDF['DP0010001'].sum(axis=0)
+		sumLandArea = self.stateCensusTractGDF['ALAND10'].sum(axis=0)
+		# sums_population_area= self.state.sum(axis=0)
 		# pop_density_calclulated= sums_population_area.DP001001/sums_population_area.LAND_AREA
-		# adding new col?
+		popDensityCalculated = sumPopArea / sumLandArea
+		# adding new col
 		# self.nationalCensusTractsGDF['Population Density']=None
+		self.nationalCensusTractsGDF['statePopDensity'] = popDensityCalculated
 	
 	#Devin 
 	def calcImperviousSurfaceCoverPercentage(self) -> None:
@@ -109,8 +108,10 @@ class Analysis:
 		impervious_mean_list = np.nan_to_num(impervious_mean_list)
 		#linear regression stats
 		slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(self.pop_density_list, impervious_mean_list)
+
 		self.plotRegression(self.pop_density_list, impervious_mean_list, r_value, intercept, slope, "impervious")
 		plt.show()
+
 	#Devin
 	def calcNLCDComponentsPercentages(self) -> None:
 		"""
@@ -165,61 +166,3 @@ class Analysis:
 		plt.xlabel('People per square mile')
 		plt.ylabel('Percent {}'.format(lc_type))
 		plt.title('Percent {} vs. Pop Density in {}'.format(lc_type, self.state))
-
-	#Daniel
-	def calcPearsonCorrelationForImperviousLandCover() -> None:
-		""" 
-		Calculate the Pearson correlation coefficient for population density and
-		the impervious land cover 
-		"""
-		#TODO: calculate the Pearson correlation using the censusTractsGDF
-
-		#TODO: add the land cover type and the r value to a dictionary in the class
-		if self.landCoverPearsonCorrelations == None:
-			#TODO
-			self.landCoverPearsonCorrelations = {
-				'impervious': "fill in the r value"
-			}
-
-			pass
-		else:
-			# self.landCoverPearsonCorrelations['impervious'] = #TODO: fill in the r value
-			pass
-	#Daniel
-	def calcPearsonCorrelationForNLCDComponents() -> None:
-		""" 
-		Calculate the Pearson correlation coefficient for population density and
-		each of the NCLD components
-		"""
-		for landCover in ncldComponents:
-			#TODO: calculate the Pearson correlation using the censusTractsGDF
-
-			#TODO: add the land cover type and the r value to a dictionary in the class
-			if self.landCoverPearsonCorrelations == None:
-				#TODO
-				self.landCoverPearsonCorrelations = {
-					landCover : "fill in the r value"
-				}
-			else:
-				# self.landCoverPearsonCorrelations[landCover] = #TODO: fill in the r value
-				pass
-	#Sai
-	def getLandCoverTypeWithHighestR(self) -> (str, int):
-		""" 
-		Go through the landCoverPearsonCorrelations and get the land cover type 
-		and r value with the highest correlation
-		"""
-		#TODO: get the land cover type with the highest correlation
-		lc = max(self.landCoverPearsonCorrelations.keys(), key=(lambda k: self.landCoverPearsonCorrelations[k]))
-		return (lc, self.landCoverPearsonCorrelations[lc])
-
-#test cases
-census = r'./ri_census_tracts/ri_census_tracts.shp'
-imp = r'./ri_imp6.tif'
-nlcd = r'./ri_nlcd4.tif'
-a = Analysis(census, nlcd, imp)
-a.setCensusTractDataFrameForState("RI")
-a.calcImperviousSurfaceCoverPercentage()
-
-a.calcNLCDComponentsPercentages()
-a.stateCensusTractGDF
