@@ -10,7 +10,6 @@ import numpy as np
 import sklearn.linear_model
 
 stateNameToCensusTractNum = {'RI':'44','NY':'36','FL':'12','WI':'55','CA':'06','NE':'31'}
-nlcdComponents = []
 
 class Analysis:
 	
@@ -97,7 +96,7 @@ class Analysis:
 	#Sai
 	def setCensusTractDataFrameForState(self, state : str):
 		""" Get the census tracts for the specific state """
-
+		print("Setting Census Tract for state: " + state)
 		#assigned state variable -Devin
 
 		self.state = state
