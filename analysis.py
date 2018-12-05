@@ -1,4 +1,5 @@
 
+
 import pandas as pd
 import geopandas as gp
 import numpy as np
@@ -157,12 +158,13 @@ class Analysis:
 		#scatter plot of points
 		plt.scatter(pop_density, percent_landcover, color = '#31a354',
                     edgecolors = 'black')
-		print(slope, intercept, r**2)
-		legend_label = matplotlib.patches.Patch(color='none', 
-                                      label='y = {:.4f}x + {:.4f}, R$^2$ = {:.4f}'.format(slope, intercept, r**2))
-		plt.legend(handles=[legend_label])
-
-
+		line = pop_density * slope + intercept
+		plt.plot(pop_density, line, 'r', zorder = 5, 
+                 label='y = {:.2f}x + {:.2f}, R$^2$ = {:.2f}'.format(slope, intercept, r**2), 
+                 color = '#377eb8', linewidth = 2.5)
+		plt.legend()
 		plt.xlabel('People per square mile')
 		plt.ylabel('Percent {}'.format(lc_type))
 		plt.title('Percent {} vs. Pop Density in {}'.format(lc_type, self.state))
+		#plt.savefig(r'C:\Users\simmonsd\Documents\GitHub\geog476-final-project\figures\{}_{}_linreg.png'.format(self.state, lc_type), dpi=250)
+		plt.savefig('../figures/{}_{}_linreg.png'.format(self.state, lc_type), dpi=250)
