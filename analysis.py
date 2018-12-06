@@ -31,7 +31,7 @@ class Analysis:
 		self.calcImperviousSurfaceCoverPercentage()
 		print("Calculating Land Cover Percentages...")
 		self.calcNLCDComponentsPercentages()
-		print("Calculating Population Density...")
+		print("Calculating State Population Density...")
 		self.calcStatePopulationDensity()
 
 	# NOTE: I think we should leave any graphing outside this class (i.e. just give them the data frame)
@@ -45,7 +45,7 @@ class Analysis:
 	def performMultLinRegAnalysis(self) -> None:
 		""" Performs the analysis and return the GeoDataFrame and R value """
 		print("Performing Multiple Linear Regression analysis for census tract number: " + self.censusTractNum)
-		self.calcMultLinReg()	
+		self.calcMultLinReg()
 	
 	
 	def calcPearsonForImpervious(self) -> None:
@@ -71,8 +71,7 @@ class Analysis:
 				lc_mean_list = self.stateCensusTractGDF[i].tolist()
 				lc_mean_list = np.array(lc_mean_list)
 				lc_mean_list = np.nan_to_num(lc_mean_list)
-				slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(self.pop_density_list, 
-                                                                                     lc_mean_list)
+				slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(self.pop_density_list, lc_mean_list)
 				self.plotPearsonRegression(self.pop_density_list, lc_mean_list, r_value, intercept, slope, i)
 				plt.show()
 
@@ -126,7 +125,7 @@ class Analysis:
 
 	#Valeria
 	def calcStatePopulationDensity(self) -> None:
-		""" Calcluate the populaiton density and add a column to the censusTractsGDF """
+		""" Calculate the populaiton density and add a column to the censusTractsGDF """
 		# selecting rows that correspond with the state
 		sumPopArea = self.stateCensusTractGDF['DP0010001'].sum(axis=0)
 		sumLandArea = self.stateCensusTractGDF['ALAND10'].sum(axis=0)
