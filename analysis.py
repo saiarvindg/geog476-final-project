@@ -22,6 +22,8 @@ class Analysis:
 			self.imperviousFile = imperviousFile
 			print("Reading in National Census Tract Data...")
 			self.nationalCensusTractsGDF = gp.read_file(self.censusTractFile)
+			#convert square meters to square miles -Devin
+			self.nationalCensusTractsGDF['ALAND10'] *= 3.8610215854245E-7
 		else:
 			raise ValueError('Please provide valid file name and paths')
 
@@ -108,8 +110,6 @@ class Analysis:
 			# TODO: select only the columns we need
 			#I added geometry, land area as needed columns -Devin
 			colNames = ['GEOID10','DP0010001','geometry','ALAND10']
-			#convert square meters to square miles -Devin
-			self.nationalCensusTractsGDF['ALAND10'] *= 3.8610215854245E-7
 			self.stateCensusTractGDF = self.nationalCensusTractsGDF[colNames]
 			# select only the census tract rows we need
 			# creating filter
