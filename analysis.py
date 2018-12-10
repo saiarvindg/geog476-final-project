@@ -8,7 +8,8 @@ import scipy.stats
 import matplotlib
 import sklearn.linear_model
 
-stateNameToCensusTractNum = {'RI':'44','NY':'36','FL':'12','WI':'55','CA':'06','NE':'31','OH':'39'}
+stateNameToCensusTractNum = {'RI':'44','NY':'36','FL':'12','WI':'55','CA':'06','NE':'31'}
+stateColors = {'RI': '#a6cee3', 'NY': '#1f78b4', 'FL': '#b2df8a', 'WI': '#33a02c', 'CA': '#fb9a99', 'NE': '#e31a1c'}
 
 class Analysis:
 	
@@ -183,12 +184,12 @@ class Analysis:
 		
 		plt.style.use('seaborn-darkgrid')
 		#scatter plot of points
-		plt.scatter(x, y, color = '#31a354',
+		plt.scatter(x, y, color = stateColors[self.state],
 					edgecolors = 'black')
 		line = x * slope + intercept
 		plt.plot(x, line, 'r', zorder = 5, 
 				label='y = {:.2f}x + {:.2f}, R$^2$ = {:.2f}'.format(slope, intercept, r**2), 
-				color = '#377eb8', linewidth = 2.5)
+				color = 'black', linewidth = 2.5)
 		plt.legend()
 		
 		if multilinreg:
