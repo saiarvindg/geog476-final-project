@@ -6,10 +6,9 @@ import matplotlib.pyplot as plt
 import rasterstats as rs
 import scipy.stats
 import matplotlib
-import numpy as np
 import sklearn.linear_model
 
-stateNameToCensusTractNum = {'RI':'44','NY':'36','FL':'12','WI':'55','CA':'06','NE':'31'}
+stateNameToCensusTractNum = {'RI':'44','NY':'36','FL':'12','WI':'55','CA':'06','NE':'31','OH':'39'}
 
 class Analysis:
 	
@@ -84,7 +83,6 @@ class Analysis:
 		self.pop_density_list = np.nan_to_num(pop_density_list)
 
 		#linear regression stats
-		# landcovers = [impervious_mean_list, developed_list, planted_list]
 		landcovers = self.stateCensusTractGDF[["impervious_mean","developed","planted"]]
 		regr = sklearn.linear_model.LinearRegression()
 		regr = regr.fit(landcovers, self.pop_density_list)
